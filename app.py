@@ -12,13 +12,13 @@ NIVEIS = {
 }
 
 
-def acao_gerar(audio, titulo, artista, album, letra, nivel, baixo, logo, progress=gr.Progress()):
+def acao_gerar(audio, titulo, artista, album, letra, nivel, baixo, logo, acordes, progress=gr.Progress()):
     if not audio:
         raise gr.Error('Escolha o arquivo de áudio da música.')
     if not (titulo or '').strip():
         raise gr.Error('Escreva o nome da música.')
     r = gerar_cifra(audio, titulo, artista, album, letra, nivel=NIVEIS[nivel], usar_baixo=baixo,
-                    logo_enviado=logo, progresso=lambda f, t: progress(f, desc=t))
+                    logo_enviado=logo, acordes=acordes, progresso=lambda f, t: progress(f, desc=t))
     return r['pdf'], r['cifra'], r['tons'], r['aviso']
 
 
@@ -41,6 +41,9 @@ with gr.Blocks(title='Cifrador') as demo:
             logo = gr.File(label='Logotipo (opcional; se vazio, usa o logotipo padrão do projeto)',
                            file_types=['image'], type='filepath')
             nivel = gr.Dropdown(list(NIVEIS), value=list(NIVEIS)[1], label='Detalhe dos acordes')
+            acordes = gr.Textbox(label='Acordes que a música usa (opcional, mas melhora muito)',
+                                 placeholder='Ex.: E B C#m A F#m7  (separe por espaço; inclua os de todos os tons)',
+                                 info='Se você sabe os acordes, escreva aqui: o programa só decide em que momento cada um toca.')
             baixo = gr.Checkbox(label='Mostrar acordes com baixo invertido (ex.: C/E)', value=False)
             botao = gr.Button('Gerar cifra', variant='primary')
     aviso = gr.Textbox(label='Aviso', interactive=False)
@@ -49,7 +52,7 @@ with gr.Blocks(title='Cifrador') as demo:
     pdf = gr.File(label='PDF da cifra')
     botao2 = gr.Button('Gerar PDF do texto acima')
 
-    botao.click(acao_gerar, [audio, titulo, artista, album, letra, nivel, baixo, logo], [pdf, cifra, tons, aviso])
+    botao.click(acao_gerar, [audio, titulo, artista, album, letra, nivel, baixo, logo, acordes], [pdf, cifra, tons, aviso])
     botao2.click(acao_so_pdf, [cifra, titulo, artista, album, logo], pdf)
 
 demo.queue(default_concurrency_limit=1)

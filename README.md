@@ -32,6 +32,12 @@ pip install -r requirements.txt gradio
 python app.py
 ```
 
+## Dica: informe os acordes da música
+
+Na tela existe o campo **Acordes que a música usa**. Se você sabe os acordes (ex.: `E B C#m A F#m7`), escreva ali,
+separados por espaço, incluindo os de todos os tons se a música modular. O programa deixa de adivinhar quais acordes
+existem e só decide em que momento cada um toca, o que melhora muito o resultado.
+
 ## Testes
 
 ```

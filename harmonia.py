@@ -1,4 +1,6 @@
 """Detecção de tom, modulações e acordes a partir do áudio."""
+import re
+
 import numpy as np
 import librosa
 from scipy.ndimage import uniform_filter1d
@@ -90,16 +92,49 @@ QUAL = {
 }
 
 
-def chord_states(nivel=3):
+def chord_states(nivel=3, permitidos=None):
+    """Lista os acordes possíveis. Se 'permitidos' vier (conjunto de (raiz, sufixo)), usa só esses."""
     states, vecs, prior = [], [], []
     for suf, (iv, w, niv, pen) in QUAL.items():
-        if niv > nivel:
+        if permitidos is None and niv > nivel:
             continue
         for root in range(12):
+            if permitidos is not None and (root, suf) not in permitidos:
+                continue
             v = np.zeros(12)
             for i, wt in zip(iv, w): v[(root + i) % 12] = wt
-            states.append((root, suf)); vecs.append(v / np.linalg.norm(v)); prior.append(pen)
+            states.append((root, suf)); vecs.append(v / np.linalg.norm(v))
+            prior.append(0.0 if permitidos is not None else pen)
     return states, np.array(vecs), np.array(prior)
+
+
+_NOTAS = {'C': 0, 'D': 2, 'E': 4, 'F': 5, 'G': 7, 'A': 9, 'B': 11}
+_SUFIXOS = {'': '', 'm': 'm', 'min': 'm', '-': 'm', '7': '7', 'm7': 'm7', 'maj7': 'maj7', 'M7': 'maj7',
+            '7M': 'maj7', 'sus4': 'sus4', 'sus': 'sus4', 'sus2': 'sus2', '7sus4': '7sus4', 'add9': 'add9',
+            '9': '9', 'm9': 'm9', 'maj9': 'maj9', 'dim': 'dim', 'm7(b5)': 'm7(b5)', 'm7b5': 'm7(b5)',
+            'dim7': 'dim7', 'aug': 'aug', '+': 'aug'}
+
+
+def parse_acordes(texto):
+    """Lê uma lista como 'E B C#m A F#m7' e devolve (conjunto de (raiz, sufixo), usa_bemol, avisos)."""
+    permitidos, avisos, bemol, sustenido = set(), [], False, False
+    for tok in re.split(r'[\s,;|]+', texto or ''):
+        if not tok:
+            continue
+        base = tok.split('/')[0]
+        m = re.match(r'^([A-Ga-g])([#b]?)(.*)$', base)
+        if not m or m.group(1).upper() not in _NOTAS:
+            avisos.append(tok)
+            continue
+        raiz = (_NOTAS[m.group(1).upper()] + {'#': 1, 'b': -1, '': 0}[m.group(2)]) % 12
+        suf = _SUFIXOS.get(m.group(3))
+        if suf is None or suf not in QUAL:
+            avisos.append(tok)
+            continue
+        permitidos.add((raiz, suf))
+        bemol = bemol or m.group(2) == 'b'
+        sustenido = sustenido or m.group(2) == '#'
+    return permitidos, (bemol and not sustenido), avisos
 
 
 def scale_bonus(states):
@@ -138,7 +173,8 @@ def _norm_rows(X):
     return X / np.maximum(np.linalg.norm(X, axis=1, keepdims=True), 1e-9)
 
 
-def analyze_harmony(path, nivel=3, usar_baixo=True, min_key_sec=25.0, min_chord_sec=1.2, log=None):
+def analyze_harmony(path, nivel=3, usar_baixo=True, min_key_sec=25.0, min_chord_sec=1.2, log=None,
+                    acordes=''):
     log = log or (lambda *a: None)
     log('Lendo o áudio...')
     y, sr = librosa.load(path, sr=SR, mono=True)
@@ -150,7 +186,12 @@ def analyze_harmony(path, nivel=3, usar_baixo=True, min_key_sec=25.0, min_chord_
         yh = y
     log('Calculando o cromagrama...')
     # ignora as notas muito graves (o baixo é analisado à parte, para os acordes invertidos)
-    C = librosa.feature.chroma_cqt(y=yh, sr=sr, hop_length=HOP, fmin=librosa.note_to_hz('C3'), n_octaves=5)   # (12, T)
+    try:
+        afinacao = float(librosa.estimate_tuning(y=yh, sr=sr))   # desvio da afinação, em frações de semitom
+    except Exception:
+        afinacao = 0.0
+    C = librosa.feature.chroma_cqt(y=yh, sr=sr, hop_length=HOP, fmin=librosa.note_to_hz('C3'), n_octaves=5,
+                                   tuning=afinacao)   # (12, T)
     C = uniform_filter1d(C, size=3, axis=1, mode='nearest')
     energy = np.linalg.norm(C, axis=0)
     C = C / np.maximum(energy, 1e-9)
@@ -193,7 +234,12 @@ def analyze_harmony(path, nivel=3, usar_baixo=True, min_key_sec=25.0, min_chord_
 
     # ---- acordes, usando o tom de cada trecho como pista
     log('Detectando os acordes...')
-    states, vecs, prior = chord_states(nivel)
+    permitidos, usa_bemol, avisos = parse_acordes(acordes)
+    if len(permitidos) < 2:
+        permitidos = None
+    else:
+        names = FLAT if usa_bemol else (SHARP if any(c in acordes for c in '#') else names)
+    states, vecs, prior = chord_states(nivel, permitidos)
     B = scale_bonus(states)
     E = 10.0 * (C.T @ vecs.T + B[spath] + prior[None, :])
     cpath = viterbi(E, 0.92)
@@ -221,4 +267,5 @@ def analyze_harmony(path, nivel=3, usar_baixo=True, min_key_sec=25.0, min_chord_
                 outras = [bass[i] for i in range(12) if i not in (pc, (pc + 1) % 12, (pc - 1) % 12)]
                 if pc != s['root'] and rel in QUAL[s['suf']][0] and bass[pc] >= 2.0 * max(outras):
                     s['name'] += '/' + names[pc]
-    return {'duration': dur, 'keys': ksegs, 'chords': csegs, 'names': names}
+    return {'duration': dur, 'keys': ksegs, 'chords': csegs, 'names': names,
+            'afinacao': afinacao, 'acordes_ignorados': avisos}

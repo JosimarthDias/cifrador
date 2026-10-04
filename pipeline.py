@@ -43,7 +43,7 @@ def montar_pdf(texto_cifra, titulo, artista, album, logo_enviado=None, pasta=Non
 
 
 def gerar_cifra(caminho_audio, titulo, artista, album, letra, nivel=2, usar_baixo=False,
-                logo_enviado=None, progresso=None, transcrever_fn=None):
+                logo_enviado=None, progresso=None, transcrever_fn=None, acordes=''):
     """Roda tudo. Devolve um dicionário com 'pdf', 'cifra', 'cifra_editor' e 'tons'.
     transcrever_fn existe para os testes poderem trocar o Whisper por uma versão falsa."""
     def avisar(frac, texto):
@@ -54,7 +54,7 @@ def gerar_cifra(caminho_audio, titulo, artista, album, letra, nivel=2, usar_baix
         from transcricao import transcrever as transcrever_fn
 
     avisar(0.05, 'Analisando tom, modulações e acordes...')
-    harmonia = analyze_harmony(caminho_audio, nivel=int(nivel), usar_baixo=bool(usar_baixo))
+    harmonia = analyze_harmony(caminho_audio, nivel=int(nivel), usar_baixo=bool(usar_baixo), acordes=acordes)
 
     avisar(0.45, 'Ouvindo a música para marcar o tempo (pode levar alguns minutos)...')
     trechos = transcrever_fn(caminho_audio)
@@ -68,6 +68,8 @@ def gerar_cifra(caminho_audio, titulo, artista, album, letra, nivel=2, usar_baix
         aviso = 'Sem letra colada: usei o texto transcrito do áudio (pode ter palavras erradas).'
     em_cima, para_editor = make_sheet(itens, harmonia)
 
+    if harmonia.get('acordes_ignorados'):
+        aviso += ' Não entendi estes acordes e ignorei: ' + ', '.join(harmonia['acordes_ignorados']) + '.'
     avisar(0.95, 'Criando o PDF...')
     pdf = montar_pdf(em_cima, titulo, artista, album, logo_enviado)
     avisar(1.0, 'Pronto.')

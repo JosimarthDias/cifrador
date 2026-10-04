@@ -74,3 +74,21 @@ def test_pdf_a_partir_de_texto_editado(tmp_path):
 def test_nome_do_arquivo():
     assert nome_do_arquivo('Canção da manhã!') == 'cifra_Cancao_da_manha.pdf'
     assert nome_do_arquivo('???') == 'cifra_musica.pdf'
+
+
+def test_lista_de_acordes_restringe_o_resultado(audio):
+    r = gerar_cifra(audio, 'Restrito', '', '', LETRA, acordes='C G Am F D A Bm',
+                    transcrever_fn=transcricao_falsa)
+    assert 'Letra corrigida' in r['aviso']
+    # só aparecem acordes da lista (sem sétimas, sem outros)
+    import re
+    achados = set(re.findall(r'\b[A-G][#b]?m?\d*\b', ' '.join(
+        l for l in r['cifra'].splitlines() if l and not l.startswith(('palavra', '[', 'Tom')))))
+    assert achados <= {'C', 'G', 'Am', 'F', 'D', 'A', 'Bm'}, achados
+
+
+def test_ler_lista_de_acordes():
+    from harmonia import parse_acordes
+    permitidos, bemol, avisos = parse_acordes('Bb Eb Gm, F7 xyz')
+    assert (10, '') in permitidos and (3, '') in permitidos and (7, 'm') in permitidos and (5, '7') in permitidos
+    assert bemol is True and avisos == ['xyz']
