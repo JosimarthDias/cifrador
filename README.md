@@ -45,18 +45,42 @@ Os testes usam um áudio sintético e uma transcrição falsa, então não preci
 
 Coloque o arquivo do logotipo em `assets/logo.png`. Ele é usado quando nenhum logotipo é enviado na tela.
 
-## Publicar no Hugging Face Spaces
+## Rodar no Google Colab (gratuito, com placa de vídeo)
 
-1. Crie um Space em huggingface.co/new-space (SDK **Gradio**, visibilidade **Private** se quiser só para você).
-2. Crie um token de acesso com permissão de escrita em huggingface.co/settings/tokens.
-3. No GitHub, em **Settings > Secrets and variables > Actions**:
-   - em **Secrets**, crie `HF_TOKEN` com o token;
-   - em **Variables**, crie `HF_USER` (seu usuário do Hugging Face) e `HF_SPACE` (nome do Space).
-4. A cada mesclagem na branch `main`, o GitHub Actions envia o projeto para o Space.
+Abra um caderno novo em colab.research.google.com, ligue a GPU (Ambiente de execução > Alterar tipo > T4 GPU)
+e rode duas caixas.
+
+Caixa 1 (instalar e baixar o projeto; troque SEU_USUARIO pelo seu usuário do GitHub):
+
+```
+!pip install -q stable-ts reportlab gradio
+!git clone https://github.com/SEU_USUARIO/cifrador.git
+```
+
+Caixa 2 (abrir o app; escolha usuário e senha para proteger o link):
+
+```
+import os
+%cd /content/cifrador
+!git pull
+os.environ['APP_SHARE'] = '1'
+os.environ['APP_USUARIO'] = 'josimarth'
+os.environ['APP_SENHA'] = 'TROQUE-ESTA-SENHA'
+!python app.py
+```
+
+A caixa 2 mostra um endereço terminado em `gradio.live`. Abra, entre com o usuário e a senha e use.
+O link vale enquanto a caixa estiver rodando. Para uma nova sessão, rode as duas caixas de novo.
+
+## Publicar no Hugging Face Spaces (opcional, exige plano pago)
+
+Spaces com Gradio exigem plano pago no Hugging Face. Se um dia quiser usar: crie o Space, crie um token de escrita,
+e no GitHub (Settings > Secrets and variables > Actions) crie o segredo `HF_TOKEN` e as variáveis `HF_USER` e
+`HF_SPACE`. A cada mesclagem na `main`, o GitHub Actions envia o projeto para o Space.
 
 ## Limites conhecidos
 
-- No Space gratuito não há placa de vídeo: usa o Whisper `small` e cada música leva alguns minutos.
-  Na GPU, o app usa o `medium`. Dá para forçar outro com a variável `WHISPER_MODEL`.
-- Os arquivos do Space gratuito não são permanentes: o logotipo padrão deve ficar em `assets/logo.png` no repositório.
+- No Colab com GPU o app usa o Whisper `medium` (rápido). Sem GPU usa o `small` (alguns minutos por música).
+  Dá para forçar outro com a variável `WHISPER_MODEL`.
+- Os arquivos do Colab somem ao fechar a sessão: o logotipo padrão deve ficar em `assets/logo.png` no repositório.
 - Acordes são sugestões automáticas: confira de ouvido.

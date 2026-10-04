@@ -2,7 +2,7 @@
 
 ## O que é
 App em Python (Gradio) que recebe áudio + letra e gera a cifra em PDF (tom, modulações, acordes sobre a letra,
-logotipo, artista, álbum e diagramas de acordes de violão). Publicado no Hugging Face Spaces via GitHub Actions.
+logotipo, artista, álbum e diagramas de acordes de violão). Roda no Google Colab (gratuito, com GPU) a partir do repositório do GitHub; o Hugging Face Spaces com Gradio exige plano pago.
 
 ## Quem usa
 O dono do projeto é músico (projeto "A Mensagem"), não é programador, trabalha por navegador e não pode instalar

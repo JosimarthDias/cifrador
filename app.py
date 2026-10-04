@@ -1,4 +1,6 @@
 """Tela web do cifrador (Gradio). Roda localmente com `python app.py` e no Hugging Face Spaces."""
+import os
+
 import gradio as gr
 
 from cifrador.pipeline import gerar_cifra, montar_pdf
@@ -53,4 +55,8 @@ with gr.Blocks(title='Cifrador') as demo:
 demo.queue(default_concurrency_limit=1)
 
 if __name__ == '__main__':
-    demo.launch()
+    # No Colab: APP_SHARE=1 cria um link público temporário; APP_USUARIO e APP_SENHA protegem o acesso.
+    usuario = os.environ.get('APP_USUARIO')
+    senha = os.environ.get('APP_SENHA')
+    demo.launch(share=os.environ.get('APP_SHARE') == '1',
+                auth=(usuario, senha) if usuario and senha else None)
