@@ -17,13 +17,13 @@ acordes encaixados em cima da letra, o logotipo, o artista, o álbum e os desenh
 
 ## Como funciona
 
-1. **Harmonia** (`cifrador/harmonia.py`): detecta o tom por trecho (e as modulações) e os acordes
+1. **Harmonia** (`harmonia.py`): detecta o tom por trecho (e as modulações) e os acordes
    (maiores, menores, com sétima e, no nível 3, sus, nonas, diminutos).
-2. **Transcrição** (`cifrador/transcricao.py`): o Whisper ouve a música e marca o tempo de cada palavra.
-3. **Letra** (`cifrador/letra.py`): troca o texto transcrito (que erra palavras) pela letra certa que você colou,
+2. **Transcrição** (`transcricao.py`): o Whisper ouve a música e marca o tempo de cada palavra.
+3. **Letra** (`letra.py`): troca o texto transcrito (que erra palavras) pela letra certa que você colou,
    verso por verso, respeitando repetições do refrão.
-4. **Cifra** (`cifrador/cifra.py`): coloca cada acorde na palavra onde ele troca.
-5. **PDF** (`cifrador/pdf.py`): gera o PDF com logotipo e diagramas de acordes.
+4. **Cifra** (`cifra.py`): coloca cada acorde na palavra onde ele troca.
+5. **PDF** (`pdf.py`): gera o PDF com logotipo e diagramas de acordes.
 
 ## Rodar no computador
 
@@ -43,7 +43,7 @@ Os testes usam um áudio sintético e uma transcrição falsa, então não preci
 
 ## Logotipo padrão
 
-Coloque o arquivo do logotipo em `assets/logo.png`. Ele é usado quando nenhum logotipo é enviado na tela.
+Coloque o arquivo do logotipo na raiz do projeto com o nome `logo.png`. Ele é usado quando nenhum logotipo é enviado na tela.
 
 ## Rodar no Google Colab (gratuito, com placa de vídeo)
 
@@ -82,5 +82,5 @@ e no GitHub (Settings > Secrets and variables > Actions) crie o segredo `HF_TOKE
 
 - No Colab com GPU o app usa o Whisper `medium` (rápido). Sem GPU usa o `small` (alguns minutos por música).
   Dá para forçar outro com a variável `WHISPER_MODEL`.
-- Os arquivos do Colab somem ao fechar a sessão: o logotipo padrão deve ficar em `assets/logo.png` no repositório.
+- Os arquivos do Colab somem ao fechar a sessão: o logotipo padrão deve ficar no repositório, com o nome `logo.png`.
 - Acordes são sugestões automáticas: confira de ouvido.

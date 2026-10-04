@@ -3,7 +3,7 @@ import os
 
 import gradio as gr
 
-from cifrador.pipeline import gerar_cifra, montar_pdf
+from pipeline import gerar_cifra, montar_pdf
 
 NIVEIS = {
     '1 - só maiores e menores (mais limpo)': 1,

@@ -10,17 +10,19 @@ programas no PC. Explique em português, com passos curtos, um de cada vez, e de
 para copiar e colar.
 
 ## Estrutura
+Todos os arquivos ficam na raiz do projeto, de propósito: o dono envia os arquivos pelo navegador, e subir pastas é difícil.
 - `app.py`: tela Gradio.
-- `cifrador/harmonia.py`: tom, modulações e acordes (cromagrama + Viterbi).
-- `cifrador/transcricao.py`: Whisper (stable-ts). Único módulo que precisa baixar modelo da internet.
-- `cifrador/letra.py`: troca o texto transcrito pela letra certa e reencaixa os tempos.
-- `cifrador/cifra.py`: monta o texto da cifra (acordes em cima da letra).
-- `cifrador/pdf.py`: PDF com reportlab.
-- `cifrador/pipeline.py`: junta tudo; `transcrever_fn` pode ser trocado nos testes.
-- `tests/`: testes com áudio sintético e transcrição falsa.
+- `harmonia.py`: tom, modulações e acordes (cromagrama + Viterbi).
+- `transcricao.py`: Whisper (stable-ts). Único módulo que precisa baixar modelo da internet.
+- `letra.py`: troca o texto transcrito pela letra certa e reencaixa os tempos.
+- `cifra.py`: monta o texto da cifra (acordes em cima da letra).
+- `pdf.py`: PDF com reportlab.
+- `pipeline.py`: junta tudo; `transcrever_fn` pode ser trocado nos testes.
+- `test_pipeline.py`: testes com áudio sintético e transcrição falsa.
+- `logo.png` (opcional): logotipo padrão dos PDFs.
 
 ## Como trabalhar
-- Rode `python -m pytest -q` antes de abrir um pull request. Todo código novo precisa de teste.
+- Rode `python -m pytest -q` (na raiz) antes de abrir um pull request. Todo código novo precisa de teste.
 - Sempre trabalhe em uma branch própria e abra um pull request; quem mescla é o dono, no GitHub.
 - Nunca coloque senhas ou tokens no código. O token do Hugging Face fica só nos segredos do GitHub.
 - A interface e as mensagens são em português do Brasil.

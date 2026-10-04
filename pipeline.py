@@ -4,12 +4,12 @@ import re
 import tempfile
 import unicodedata
 
-from .cifra import make_sheet
-from .harmonia import analyze_harmony
-from .letra import items_from_segments, items_with_correct_lyrics
-from .pdf import Meta, gerar_pdf
+from cifra import make_sheet
+from harmonia import analyze_harmony
+from letra import items_from_segments, items_with_correct_lyrics
+from pdf import Meta, gerar_pdf
 
-LOGO_PADRAO = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'assets', 'logo.png')
+LOGO_PADRAO = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logo.png')
 
 
 def nome_do_arquivo(titulo):
@@ -51,7 +51,7 @@ def gerar_cifra(caminho_audio, titulo, artista, album, letra, nivel=2, usar_baix
             progresso(frac, texto)
 
     if transcrever_fn is None:
-        from .transcricao import transcrever as transcrever_fn
+        from transcricao import transcrever as transcrever_fn
 
     avisar(0.05, 'Analisando tom, modulações e acordes...')
     harmonia = analyze_harmony(caminho_audio, nivel=int(nivel), usar_baixo=bool(usar_baixo))
